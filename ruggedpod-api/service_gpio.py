@@ -4,10 +4,13 @@ import mock
 
 from common import conf
 from common import importutils
+from ABE_ADCPi import ADCPi
+from ABE_helpers import ABEHelpers
 
 GPIO = importutils.try_import('RPi.GPIO', default=mock.Mock(),
                               warn="WARNING: RPi.GPIO could not be imported,"
                               " you are in MOCK MODE!")
+
 
 ymlConf = conf.YmlConf('conf.yaml')
 
@@ -20,6 +23,12 @@ short_press = ymlConf.get_attr('short_press')
 long_press = ymlConf.get_attr('long_press')
 serial_select_dict = ymlConf.get_attr('serial_select')
 oil_pump_dict = ymlConf.get_attr('oil_pump')
+dac_power_consumption_addr =  ymlConf.get_attr('dac_power_consumption_addr')
+print dac_power_consumption_addr
+
+
+i2c_helper = ABEHelpers()
+adc = ADCPi(i2c_helper.get_smbus() , 0x6c, 0x6a, 12)
 
 
 def init():
@@ -94,8 +103,8 @@ def get_all_power_consumption():
         blade = etree.SubElement(consumption, 'bladeResponse')
         _set_default_xml_attr(blade)
         etree.SubElement(blade, 'bladeNumber').text = blade_id
-        rand = str(50 + int(time.time()) % 30 + random.randint(-10, 10))
-        etree.SubElement(consumption, 'powerConsumption').text = rand
+        value = (adc.read_raw(3) * 2 / float(1000) - 2.5) *10 *24
+        etree.SubElement(consumption, 'powerConsumption').text = str(int(value))
     return etree.tostring(response, pretty_print=True)
 
 
@@ -105,8 +114,8 @@ def get_power_consumption(blade_id):
     blade = etree.SubElement(response, 'bladeResponse')
     _set_default_xml_attr(blade)
     etree.SubElement(blade, 'bladeNumber').text = blade_id
-    rand = str(100 + random.randint(-10, 10))
-    etree.SubElement(response, 'powerConsumption').text = rand
+    value = (adc.read_raw(3) * 2 / float(1000) - 2.5) * 10 * 24
+    etree.SubElement(response, 'powerConsumption').text = str(int(value))
     return etree.tostring(response, pretty_print=True)
 
 
