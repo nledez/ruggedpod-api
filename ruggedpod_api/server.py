@@ -225,9 +225,12 @@ def get_all_blades_oil_pump_state():
     return service.get_all_blades_oil_pump_state()
 
 
-if __name__ == "__main__":
+def main():
     service.init()
 
     if '--debug' in sys.argv:
         app.debug = True
     app.run(host='0.0.0.0')
+
+if __name__ == "__main__":
+    main()
