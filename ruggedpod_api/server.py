@@ -64,7 +64,8 @@ def authenticate():
     token, expires = auth.get_token(request.args['username'],
                                     request.args['password'])
     response = make_response('', 201)
-    response.set_cookie('X-Auth-Username', request.args['username'], expires=expires)
+    response.set_cookie('X-Auth-Username', request.args['username'],
+                        expires=expires)
     response.set_cookie('X-Auth-Token', token, expires=expires)
     return response
 
